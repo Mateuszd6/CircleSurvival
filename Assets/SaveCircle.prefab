@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2239581682777831369}
   - component: {fileID: 2239581682777831371}
   - component: {fileID: 2239581682777831368}
-  - component: {fileID: 2239581682777831370}
+  - component: {fileID: 276643375}
   m_Layer: 5
   m_Name: SaveCircle
   m_TagString: Untagged
@@ -76,7 +76,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 2
   m_UseSpriteMesh: 0
---- !u!114 &2239581682777831370
+--- !u!114 &276643375
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -85,17 +85,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 2239581682777831366}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97c80b5989efb4144a6e822d940c3d42, type: 3}
+  m_Script: {fileID: 11500000, guid: 1e20bc94683cdda4ba01270b36d72cc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  greenFill: {fileID: 2239581682790792515}
-  gameCanvasTransform: {fileID: 0}
+  selfTransform: {fileID: 0}
   id: 0
   size: 0
   currentTime: 0
-  initTime: 1
+  initTime: 0.08
+  deinitTime: 0.08
+  growTime: 0.2
   expireTime: 4
   circleState: 0
+  greenFill: {fileID: 2239581682790792515}
 --- !u!1 &2239581682790792513
 GameObject:
   m_ObjectHideFlags: 0

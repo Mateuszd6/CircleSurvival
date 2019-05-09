@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6190143087226948194}
   - component: {fileID: 6190143087226948196}
   - component: {fileID: 6190143087226948195}
+  - component: {fileID: 1724280144}
   m_Layer: 5
   m_Name: DeadlyCircle
   m_TagString: Untagged
@@ -74,3 +75,24 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
+--- !u!114 &1724280144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6190143087226948193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64bb468c21bd2f447b24330ff2eca200, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selfTransform: {fileID: 0}
+  id: 0
+  size: 0
+  currentTime: 0
+  initTime: 0.08
+  deinitTime: 0.08
+  growTime: 0.2
+  expireTime: 4
+  circleState: 0

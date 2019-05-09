@@ -3,55 +3,90 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 // TODO: Stop calling get component everywere!
-public class Circle : MonoBehaviour, IPointerClickHandler
+public abstract class Circle : MonoBehaviour, IPointerClickHandler
 {
-    public Image greenFill;
-    public RectTransform gameCanvasTransform;
+    public RectTransform selfTransform;
 
+    // These must be set by the external creator. 
     public int id;
-    public float size = 0.0f;
+    public float size;
+    Vector2 position;
+
     public float currentTime = 0.0f;
-    public float initTime = 0.2f;
+    public float initTime = 0.08f; // TODO: Use this instead of magic values!
+    public float deinitTime = 0.08f;
+    public float growTime = 0.2f; 
     public float expireTime = 4.0f;
 
     // When (de)initializing circle size lerps from(to) zero but the object is inactive. 
     // This make is 'smoothely' appear on the screen. Grow is done when the 'bomb' explodeds
-    // covering all screen the the circle.
-    public enum CircleState { initializing, couting, deinitializing, grow };
-    public CircleState circleState = CircleState.initializing;
-    
-    Vector2 RandomScreenPosition(float circleSize)
+    // covering all screen the the circle. 
+    public enum CircleState { none, initializing, couting, deinitializing, grow };
+    public CircleState circleState = CircleState.none;
+
+    public abstract void HandleAction();
+
+    public abstract void CountingUpdate();
+
+    public virtual void InitUpdate()
     {
-        var screenSize = new Vector2(gameCanvasTransform.rect.width, 
-                                     gameCanvasTransform.rect.height);
+        var selfRectTransfrom = selfTransform;
+        float newScale = Mathf.Lerp(0.0f, size, currentTime / initTime);
+        selfRectTransfrom.sizeDelta = new Vector2(newScale, newScale);
 
-        // This offset is added to the position, so that the circle 
-        // will never be right on the boundary.
-        float offset = 5;
-        float circleRadius = circleSize / 2;
-        var randomPos = new Vector2(Random.Range(circleRadius + offset, screenSize.x - circleRadius - offset), 
-                                    Random.Range(circleRadius + offset, screenSize.y - circleRadius - offset));
+        if (currentTime >= initTime)
+        {
+            currentTime = 0;
+            circleState = CircleState.couting;
+        }
+    }
 
-        return randomPos;
+    public virtual void DeinitUpdate()
+    {
+        var selfRectTransfrom = selfTransform;
+        float newScale = Mathf.Lerp(size, 0.0f, currentTime / deinitTime);
+        selfRectTransfrom.sizeDelta = new Vector2(newScale, newScale);
+
+        if (currentTime >= deinitTime)
+            Destroy(gameObject);
+    }
+
+    public virtual void GrowUpdate()
+    {
+        // This will get the large enough size to cover the whole screen.
+        float screenCoverSize = 10000;
+#if false
+            4 * Mathf.Max(gameCanvasTransform.rect.width,
+                                              gameCanvasTransform.rect.height);
+#endif
+
+        float newScale = Mathf.Lerp(size, screenCoverSize, currentTime / growTime);
+        selfTransform.sizeDelta = new Vector2(newScale, newScale);
+
+        if (currentTime >= growTime)
+        {
+            // TODO: Change this behaviour!
+            Debug.Log("Growing has finished\n");
+            Destroy(this);
+        }
+    }
+    
+    public void SetValues(int newID, float newSize, Vector2 newPosition)
+    {
+        id = newID;
+        size = newSize;
+        position = newPosition;
+    }
+
+    void Awake()
+    {
+        selfTransform = GetComponent<RectTransform>();
     }
 
     void Start()
     {
-        id = Random.Range(0, 2147483647);
-        var selfRectTransfrom = GetComponent<RectTransform>();
-
-        float w = gameCanvasTransform.rect.width;
-        float h = gameCanvasTransform.rect.height;
-        float circlew = selfRectTransfrom.rect.width;
-        float circleh = selfRectTransfrom.rect.height;
-
-
-        var gameSettings = Singles.GetScriptable<GameSettings>();
-        size = Random.Range(h * 0.1f, h * 0.25f);
-        selfRectTransfrom.sizeDelta = new Vector2(size, size);
-        Vector2 randomPosition = RandomScreenPosition(size);
-        selfRectTransfrom.position = new Vector3(randomPosition.x, randomPosition.y);
-        Debug.Log("Size: (" + w + "; " + h + "), Circle: (" + circlew + "; " + circleh + ")" + "\n");
+        // selfTransform.sizeDelta = new Vector2(size, size);
+        // selfTransform.position = new Vector3(position.x, position.y);
     }
 
     void Update()
@@ -60,51 +95,22 @@ public class Circle : MonoBehaviour, IPointerClickHandler
 
         if (circleState == CircleState.initializing)
         {
-            var selfRectTransfrom = GetComponent<RectTransform>();
-            float newScale = Mathf.Lerp(0.0f, size, currentTime / 0.08f);
-            selfRectTransfrom.sizeDelta = new Vector2(newScale, newScale);
-
-            if (newScale >= size)
-            {
-                currentTime = 0;
-                circleState = CircleState.couting;
-            }
+            InitUpdate();
         }
         
         if (circleState == CircleState.couting)
         {
-            greenFill.fillAmount = Mathf.Lerp(1, 0, currentTime / expireTime);
-
-            if (greenFill.fillAmount <= Mathf.Epsilon)
-            {
-                Debug.Log("Not clicked! Game should be finished!\n");
-                Debug.Break();
-
-                // TODO: We won't need these.
-                currentTime = 0;
-                circleState = CircleState.grow;
-            }
+            CountingUpdate();
         }
 
         if (circleState == CircleState.deinitializing)
         {
-            var selfRectTransfrom = GetComponent<RectTransform>();
-            float newScale = Mathf.Lerp(size, 0.0f, currentTime / 0.08f);
-            selfRectTransfrom.sizeDelta = new Vector2(newScale, newScale);
-
-            if (newScale <= Mathf.Epsilon)
-                Destroy(gameObject);
+            DeinitUpdate();
         }
 
         if (circleState == CircleState.grow)
         {
-            // This will get the large enough size to cover the whole screen.
-            float screenCoverSize = 4 * Mathf.Max(gameCanvasTransform.rect.width, 
-                                                  gameCanvasTransform.rect.height);
-
-            var selfRectTransfrom = GetComponent<RectTransform>();
-            float newScale = Mathf.Lerp(size, screenCoverSize, currentTime / 0.2f);
-            selfRectTransfrom.sizeDelta = new Vector2(newScale, newScale);
+            GrowUpdate();
         }
     }
 
@@ -115,9 +121,7 @@ public class Circle : MonoBehaviour, IPointerClickHandler
         if (circleState == CircleState.initializing
             || circleState == CircleState.couting)
         {
-            Debug.Log("Circle " + id + " was clicked!\n");
-            circleState = CircleState.deinitializing;
-            currentTime = 0;
+            HandleAction();
         }
     }
 }
