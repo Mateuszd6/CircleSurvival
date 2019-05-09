@@ -13,11 +13,4 @@ public class GameSettings : ScriptableObject
 
     [SerializeField]
     public int initialLifetimeLenMax = 4;
-
-    // TODO: Min max property drawer!
-    [SerializeField]
-    public int circleSizeMin = 90;
-
-    [SerializeField]
-    public int circleSizeMax = 160;
 }

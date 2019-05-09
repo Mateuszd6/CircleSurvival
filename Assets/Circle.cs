@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
+// TODO: Stop calling get component everywere!
 public class Circle : MonoBehaviour, IPointerClickHandler
 {
     public Image greenFill;
@@ -15,8 +15,9 @@ public class Circle : MonoBehaviour, IPointerClickHandler
     public float expireTime = 4.0f;
 
     // When (de)initializing circle size lerps from(to) zero but the object is inactive. 
-    // This make is 'smoothely' appear on the screen.
-    public enum CircleState { initializing, couting, deinitializing };
+    // This make is 'smoothely' appear on the screen. Grow is done when the 'bomb' explodeds
+    // covering all screen the the circle.
+    public enum CircleState { initializing, couting, deinitializing, grow };
     public CircleState circleState = CircleState.initializing;
     
     Vector2 RandomScreenPosition(float circleSize)
@@ -46,7 +47,7 @@ public class Circle : MonoBehaviour, IPointerClickHandler
 
 
         var gameSettings = Singles.GetScriptable<GameSettings>();
-        size = Random.Range(gameSettings.circleSizeMin, gameSettings.circleSizeMax);
+        size = Random.Range(h * 0.1f, h * 0.25f);
         selfRectTransfrom.sizeDelta = new Vector2(size, size);
         Vector2 randomPosition = RandomScreenPosition(size);
         selfRectTransfrom.position = new Vector3(randomPosition.x, randomPosition.y);
@@ -81,7 +82,7 @@ public class Circle : MonoBehaviour, IPointerClickHandler
 
                 // TODO: We won't need these.
                 currentTime = 0;
-                circleState = CircleState.deinitializing;
+                circleState = CircleState.grow;
             }
         }
 
@@ -94,12 +95,29 @@ public class Circle : MonoBehaviour, IPointerClickHandler
             if (newScale <= Mathf.Epsilon)
                 Destroy(gameObject);
         }
+
+        if (circleState == CircleState.grow)
+        {
+            // This will get the large enough size to cover the whole screen.
+            float screenCoverSize = 4 * Mathf.Max(gameCanvasTransform.rect.width, 
+                                                  gameCanvasTransform.rect.height);
+
+            var selfRectTransfrom = GetComponent<RectTransform>();
+            float newScale = Mathf.Lerp(size, screenCoverSize, currentTime / 0.2f);
+            selfRectTransfrom.sizeDelta = new Vector2(newScale, newScale);
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log("Circle " + id + " was clicked!\n");
-        circleState = CircleState.deinitializing;
-        currentTime = 0;
+        // We allow the user to click on the initialized circle but this is unlikely 
+        // (he has few frames for that and the object is small).
+        if (circleState == CircleState.initializing
+            || circleState == CircleState.couting)
+        {
+            Debug.Log("Circle " + id + " was clicked!\n");
+            circleState = CircleState.deinitializing;
+            currentTime = 0;
+        }
     }
 }
