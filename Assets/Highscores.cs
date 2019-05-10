@@ -6,7 +6,7 @@ using UnityEngine;
 public class Highscores
 {
     [Serializable]
-    public class HighscoreRecord
+    public class Record
     {
         [SerializeField]
         public string playerName;
@@ -14,7 +14,7 @@ public class Highscores
         [SerializeField]
         public int secondsSurvived;
 
-        public HighscoreRecord(string playerName, int secondsSurvived)
+        public Record(string playerName, int secondsSurvived)
         {
             this.playerName = playerName;
             this.secondsSurvived = secondsSurvived;
@@ -22,7 +22,7 @@ public class Highscores
     }
 
     [SerializeField]
-    public List<HighscoreRecord> records;
+    public List<Record> records;
 
     [SerializeField]
     public string checksum;
@@ -30,6 +30,6 @@ public class Highscores
     public Highscores()
     {
         if (records == null)
-            records = new List<HighscoreRecord>();
+            records = new List<Record>();
     }
 }

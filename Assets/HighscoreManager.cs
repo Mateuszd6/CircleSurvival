@@ -38,14 +38,14 @@ public class HighscoreManager : MonoSingleton<HighscoreManager>
     }
 
     // Returns MD5 sum from the highscore records.
-    private string GetMd5FromRecords(List<Highscores.HighscoreRecord> highscores)
+    private string GetMd5FromRecords(List<Highscores.Record> highscores)
     {
         byte[] hash;
 
         // Use memory stream to convert list of highscores to bytes
         using (MemoryStream ms = new MemoryStream(512))
         {
-            foreach (Highscores.HighscoreRecord hr in highscores)
+            foreach (Highscores.Record hr in highscores)
             {
                 byte[] nameAsBytes = Encoding.UTF8.GetBytes(hr.playerName);
                 byte[] scoreAsBytes = BitConverter.GetBytes(hr.secondsSurvived);
@@ -89,7 +89,7 @@ public class HighscoreManager : MonoSingleton<HighscoreManager>
 
         // Add our record, remove the worst, save to the file and tell the user, 
         // that he is in the top maxRecords.
-        Highscores.records.Insert(insertIdx, new Highscores.HighscoreRecord(userName, score));
+        Highscores.records.Insert(insertIdx, new Highscores.Record(userName, score));
         if (Highscores.records.Count > maxRecords)
             Highscores.records.RemoveRange(maxRecords, Highscores.records.Count - maxRecords);
         SaveHighscores(Highscores);

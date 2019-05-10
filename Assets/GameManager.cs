@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // TODO: Add lock object and make sure only one circle is destoryed at the time.
@@ -9,6 +10,12 @@ public class GameManager : MonoSingleton<GameManager>
     public RectTransform gameCanvasTransform; // TODO: Get it by find?
     public Text gameTimer;
     public Text countdown;
+
+    public Text looseInfo;
+    public Text finalScoreInfo;
+    public Text highscoreInfo;
+    public InputField highscoreNameField;
+    public Button submitScoreButton;
 
     public List<Circle> activeCircles; // TODO: private
 
@@ -24,6 +31,16 @@ public class GameManager : MonoSingleton<GameManager>
     private float timeWithoutSpawn = 0;
     private float nextSpawnTime = 0.5f;
     private float gameTime = 0f;
+
+    private string TimeInSecondsToString(int seconds)
+    {
+        int min = seconds / 60;
+        int sec = seconds % 60;
+        string minutesStr = min == 0 ? "" : min.ToString() + " min ";
+        string secondsStr = sec.ToString() + " sec ";
+
+        return minutesStr + secondsStr;
+    }
 
     private Vector2 RandomScreenPosition(float circleSize)
     {
@@ -130,18 +147,49 @@ public class GameManager : MonoSingleton<GameManager>
             Destroy(c.gameObject);
         activeCircles.Clear();
 
-        Debug.Log("Final result: " + scoredResult + "\n");
+        bool wasHighscore = HighscoreManager.Instance.CheckIfHighscore(scoredResult);
+
+        looseInfo.gameObject.SetActive(true);
+        finalScoreInfo.gameObject.SetActive(true);
+        submitScoreButton.gameObject.SetActive(true);
+
+        finalScoreInfo.text = "Time survived: " + TimeInSecondsToString(scoredResult);
+
+        if (wasHighscore)
+        {
+            highscoreInfo.gameObject.SetActive(true);
+            highscoreNameField.gameObject.SetActive(true);
+        }
+        else
+        {
+            submitScoreButton.GetComponentInChildren<Text>().text = "Back to menu";
+        }
+
+        Debug.Log("Final result: " + scoredResult + (wasHighscore ? "(HS)" : "") + "\n");
+    }
+
+    public void ExitGameScreen()
+    {
+        Debug.Log("Exitting game screen\n");
+        
+        if (HighscoreManager.Instance.CheckIfHighscore(scoredResult))
+        {
+            string playerName = highscoreNameField.text;
+            if (playerName == "")
+                playerName = "Anon";
+
+            HighscoreManager.Instance.AddScoreToHighscores(playerName, scoredResult);
+        }
+
+        SceneManager.LoadScene("start");
     }
 
     private void UpdateTime(int secondsSinceStart)
     {
-        int minutes = secondsSinceStart / 60;
-        int seconds = secondsSinceStart % 60;
-        string minutesStr = minutes == 0 ? "" : minutes.ToString() + " min ";
-        string secondsStr = seconds.ToString() + " sec ";
+        string timeStr = TimeInSecondsToString(secondsSinceStart);
 
         scoredResult = secondsSinceStart;
-        gameTimer.text = "Time: " + minutesStr + secondsStr;
+        gameTimer.text = "Time: " + timeStr;
     }
 
     private void SetCountDown(int value)
@@ -161,7 +209,11 @@ public class GameManager : MonoSingleton<GameManager>
 
     void Start()
     {
-        // countdown.gameObject.SetActive(false);
+        looseInfo.gameObject.SetActive(false);
+        finalScoreInfo.gameObject.SetActive(false);
+        highscoreInfo.gameObject.SetActive(false);
+        highscoreNameField.gameObject.SetActive(false);
+        submitScoreButton.gameObject.SetActive(false);
     }
 
     int countdownState = 0;
