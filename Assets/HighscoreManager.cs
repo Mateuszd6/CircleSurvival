@@ -18,7 +18,7 @@ public class HighscoreManager : MonoSingleton<HighscoreManager>
         {
             if (_highscoresFilePath == null)
             {
-                _highscoresFilePath = 
+                _highscoresFilePath =
                     Path.Combine(Application.persistentDataPath, highscoresFilename);
             }
 
@@ -64,11 +64,17 @@ public class HighscoreManager : MonoSingleton<HighscoreManager>
         return sb.ToString();
     }
 
-    /// <summary>
-    /// Returns true if the score fits in the highscores (top n results). If there are already 
-    /// n records in the list and the added one is not the worst, the worst is removed. If current
-    /// highscore is same as worst and one must be removed oldest record is always deleted.
-    /// </summary>
+    // Returns true if the given score will fit in the highscore ladderboard (there is 
+    // a spot, or it beats some records from the list).
+    public bool CheckIfHighscore(int score)
+    {
+        return (Highscores.records.Count < maxRecords
+                || Highscores.records[maxRecords - 1].secondsSurvived <= score);
+    }
+
+    // Returns true if the score fits in the highscores (top n results). If there are already 
+    // n records in the list and the added one is not the worst, the worst is removed. If current
+    // highscore is same as worst and one must be removed oldest record is always deleted.
     public bool AddScoreToHighscores(string userName, int score)
     {
         // Find the first index in which the score is less, as we must insert before that 
@@ -91,6 +97,7 @@ public class HighscoreManager : MonoSingleton<HighscoreManager>
         return true;
     }
 
+    // Save highscores object into the file.
     private void SaveHighscores(Highscores highscores)
     {
         highscores.checksum = GetMd5FromRecords(highscores.records);
@@ -102,6 +109,8 @@ public class HighscoreManager : MonoSingleton<HighscoreManager>
         }
     }
 
+    // If the file with highscores exists reads it into memory when its does not 
+    // (or is corrupted) creates an empty highscores file.
     private Highscores LoadOrCreateHighscores()
     {
         Highscores retval = null;

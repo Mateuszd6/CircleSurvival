@@ -5,6 +5,7 @@ public class AudioManager : MonoSingleton<AudioManager>
     private AudioSource audioSource;
 
     public AudioClip[] popClips;
+    public AudioClip[] countdownClips;
     public AudioClip cutdown;
     public AudioClip explode;
 
@@ -32,6 +33,12 @@ public class AudioManager : MonoSingleton<AudioManager>
     public void PlayExplosion()
     {
         audioSource.clip = explode;
+        audioSource.Play();
+    }
+
+    public void PlayCountdown(int which)
+    {
+        audioSource.clip = countdownClips[which];
         audioSource.Play();
     }
 }

@@ -7,14 +7,23 @@ public class GameManager : MonoSingleton<GameManager>
 {
     public GameSettings gameSettings;
     public RectTransform gameCanvasTransform; // TODO: Get it by find?
-    public List<Circle> activeCircles; // TODO: private
     public Text gameTimer;
+    public Text countdown;
 
-    public enum GameState { running, ended };
-    public GameState gameState = GameState.running;
+    public List<Circle> activeCircles; // TODO: private
+
+    public enum GameState { init, running, ended };
+    public GameState gameState = GameState.init;
 
     public GameObject saveCircle;
     public GameObject deadlyCircle;
+
+    private int scoredResult = 0;
+    private int currentLevelIdx = 0;
+    private float timeInLevel = 0;
+    private float timeWithoutSpawn = 0;
+    private float nextSpawnTime = 0.5f;
+    private float gameTime = 0f;
 
     private Vector2 RandomScreenPosition(float circleSize)
     {
@@ -113,6 +122,17 @@ public class GameManager : MonoSingleton<GameManager>
         gameState = GameState.ended; // No more circles will be spawned.
     }
 
+    // Cleanup after the explosion. This will destroy all game objects and carry the 
+    // game state to the summary screen.
+    public void Cleanup()
+    {
+        foreach (Circle c in activeCircles)
+            Destroy(c.gameObject);
+        activeCircles.Clear();
+
+        Debug.Log("Final result: " + scoredResult + "\n");
+    }
+
     private void UpdateTime(int secondsSinceStart)
     {
         int minutes = secondsSinceStart / 60;
@@ -120,7 +140,18 @@ public class GameManager : MonoSingleton<GameManager>
         string minutesStr = minutes == 0 ? "" : minutes.ToString() + " min ";
         string secondsStr = seconds.ToString() + " sec ";
 
+        scoredResult = secondsSinceStart;
         gameTimer.text = "Time: " + minutesStr + secondsStr;
+    }
+
+    private void SetCountDown(int value)
+    {
+        countdown.gameObject.SetActive(true);
+        AudioManager.Instance.PlayCountdown(value - 1);
+        if (1 <= value && value <= 3)
+            countdown.text = value.ToString();
+        else
+            countdown.text = "GO!";
     }
 
     void Awake()
@@ -128,26 +159,60 @@ public class GameManager : MonoSingleton<GameManager>
         activeCircles = new List<Circle>();
     }
 
-    int lastTimeUpdateValue = 0;
-    int currentLevelIdx = 0;
-    float timeInLevel = 0;
-    float timeWithoutSpawn = 0;
-    float nextSpawnTime = 0.5f;
-    float gameTime = 0f;
+    void Start()
+    {
+        // countdown.gameObject.SetActive(false);
+    }
 
+    int countdownState = 0;
     void Update()
     {
+        gameTime += Time.deltaTime; // TODO: Rename gameTime to stateTime etc
+        if (gameState == GameState.init)
+        {
+            if (countdownState == 4 && gameTime >= 3 * 0.9f + 2f)
+            {
+                countdown.gameObject.SetActive(false);
+
+                Debug.Log("Game started\n");
+                gameTime = 0;
+                gameState = GameState.running;
+            }
+            else if (countdownState == 3 && gameTime >= 3 * 0.9f)
+            {
+                countdownState = 4;
+                SetCountDown(countdownState);
+            }
+            else if (countdownState == 2 && gameTime >= 2 * 0.9f)
+            {
+                countdownState = 3;
+                SetCountDown(countdownState);
+            }
+            else if (countdownState == 1 && gameTime >=  0.9f)
+            {
+                countdownState = 2;
+                SetCountDown(countdownState);
+            }
+            else if (countdownState == 0)
+            {
+                countdownState = 1;
+                SetCountDown(countdownState);
+            }
+        }
+
         if (gameState == GameState.running)
         {
-            gameTime += Time.deltaTime;
             timeWithoutSpawn += Time.deltaTime;
             timeInLevel += Time.deltaTime;
 
+            // This check will allow us to update this text much lesser.
             int secondsSinceStart = Mathf.RoundToInt(gameTime);
-            if (secondsSinceStart > lastTimeUpdateValue)
+            if (secondsSinceStart > scoredResult)
+            {
                 UpdateTime(secondsSinceStart);
+            }
 
-            if (timeWithoutSpawn >= nextSpawnTime) // timeWithoutSpawn >= gameSettings.levels[currentLevelIdx].spawningFrequency)
+            if (timeWithoutSpawn >= nextSpawnTime) 
             {
                 SpawnCircle();
                 timeWithoutSpawn = 0f;

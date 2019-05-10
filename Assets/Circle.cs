@@ -94,6 +94,9 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
             // TODO: Change this behaviour!
             Debug.Log("Growing has finished\n");
             ChangeState(CircleState.none);
+
+            // The cleanup will delete all circle (including us).
+            GameManager.Instance.Cleanup();
         }
     }
     
