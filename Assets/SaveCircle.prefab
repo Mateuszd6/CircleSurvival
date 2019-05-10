@@ -88,13 +88,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e20bc94683cdda4ba01270b36d72cc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selfTransform: {fileID: 0}
+  selfTransform: {fileID: 2239581682777831369}
   id: 0
   size: 0
   currentTime: 0
   initTime: 0.08
   deinitTime: 0.08
-  growTime: 0.2
+  growTime: 2
   expireTime: 4
   circleState: 0
   greenFill: {fileID: 2239581682790792515}

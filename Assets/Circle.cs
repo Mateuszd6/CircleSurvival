@@ -12,11 +12,12 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
     public float size;
     Vector2 position;
 
-    public float currentTime = 0.0f;
+    public float currentTime = 0f;
     public float initTime = 0.08f; // TODO: Use this instead of magic values!
     public float deinitTime = 0.08f;
-    public float growTime = 0.2f; 
-    public float expireTime = 4.0f;
+    public float growTime = 1f;
+    public float shakeTime = 2f;
+    public float expireTime = 4f;
 
     // When (de)initializing circle size lerps from(to) zero but the object is inactive. 
     // This make is 'smoothely' appear on the screen. Grow is done when the 'bomb' explodeds
@@ -51,14 +52,31 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
             Destroy(gameObject);
     }
 
+    // TODO: Make separate state for shaking. 
+    private bool shake = true; // TODO: get rid of.
     public virtual void GrowUpdate()
     {
+        if (shake)
+        {
+            Vector2 shakeOffset = new Vector2(Random.value * 3.5f, Random.value * 3.5f);
+            selfTransform.position = new Vector3(position.x + shakeOffset.x, position.y + shakeOffset.y);
+
+            if (currentTime >= shakeTime)
+            {
+                currentTime = 0;
+                shake = false;
+            }
+
+            return;
+        }
+
         // This will get the large enough size to cover the whole screen.
         float screenCoverSize = 10000;
 #if false
             4 * Mathf.Max(gameCanvasTransform.rect.width,
                                               gameCanvasTransform.rect.height);
 #endif
+
 
         float newScale = Mathf.Lerp(size, screenCoverSize, currentTime / growTime);
         selfTransform.sizeDelta = new Vector2(newScale, newScale);
@@ -76,19 +94,20 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
         id = newID;
         size = newSize;
         position = newPosition;
+
+        selfTransform.position = new Vector3(position.x, position.y);
     }
 
     void Awake()
     {
         selfTransform = GetComponent<RectTransform>();
+
+        // When the circle is instantiated we must set the scale to 0.
+        // It will be reset by the creator.
+        selfTransform.sizeDelta = new Vector2(0, 0);
     }
 
-    void Start()
-    {
-        // selfTransform.sizeDelta = new Vector2(size, size);
-        // selfTransform.position = new Vector3(position.x, position.y);
-    }
-
+    // TODO: Rewrite them as coroutines?
     void Update()
     {
         currentTime += Time.deltaTime;

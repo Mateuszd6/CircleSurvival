@@ -93,6 +93,6 @@ MonoBehaviour:
   currentTime: 0
   initTime: 0.08
   deinitTime: 0.08
-  growTime: 0.2
+  growTime: 2
   expireTime: 4
   circleState: 0

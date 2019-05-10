@@ -45,7 +45,6 @@ public class GameManager : MonoBehaviour
                                 .GetComponent<Circle>();
 
         createdCircle.SetValues(newID, newSize, newPosition);
-        createdCircle.gameObject.SetActive(true);
         createdCircle.currentTime = 0.0f; // TODO: Remove it from here once change state fucntion gots implements.
         createdCircle.circleState = Circle.CircleState.initializing;
     }
@@ -55,13 +54,21 @@ public class GameManager : MonoBehaviour
         activeCircles.RemoveAll(x => x.id == circleID);
     }
 
-    bool alreadySpawned = false;
+    int alreadySpawned = 0;
     void Update()
     {
-        if (!alreadySpawned && Time.time >= 3)
+        if ((alreadySpawned <= 0 && Time.time >= 3.0f)
+            || (alreadySpawned <= 1 && Time.time >= 3.5f)
+            || (alreadySpawned <= 2 && Time.time >= 4.0f)
+            || (alreadySpawned <= 3 && Time.time >= 4.5f)
+            || (alreadySpawned <= 4 && Time.time >= 5.0f)
+            || (alreadySpawned <= 5 && Time.time >= 5.5f)
+            || (alreadySpawned <= 6 && Time.time >= 6.0f)
+            || (alreadySpawned <= 7 && Time.time >= 7.0f)
+            || (alreadySpawned <= 8 && Time.time >= 8.0f))
         {
             SpawnCircle();
-            alreadySpawned = true;
+            alreadySpawned = 15;
         }
     }
 }
