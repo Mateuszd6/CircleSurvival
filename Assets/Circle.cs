@@ -63,26 +63,28 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
     private bool shake = true; // TODO: get rid of.
     public virtual void GrowUpdate()
     {
+        // TODO: Find a way to skip get component here!
+        var gameCanvasTransform = transform.parent.GetComponent<RectTransform>();
+
         if (shake)
         {
-            Vector2 shakeOffset = new Vector2(Random.value * 3.5f, Random.value * 3.5f);
+            // This fraction of the screen is empirical but looks good with many resolutions.
+            var perc = gameCanvasTransform.rect.width / 140;
+            Vector2 shakeOffset = new Vector2(Random.value * perc, Random.value * perc);
             selfTransform.localPosition = new Vector3(position.x + shakeOffset.x, position.y + shakeOffset.y);
 
             if (currentTime >= settings.shakeTime)
             {
                 currentTime = 0;
                 shake = false;
+                AudioManager.Instance.PlayExplosion();
             }
 
             return;
         }
 
-        // This will get the large enough size to cover the whole screen.
-        // TODO: Find a way to skip get component here!
-        var gameCanvasTransform = transform.parent.GetComponent<RectTransform>();
         float screenCoverSize = 4 * Mathf.Max(gameCanvasTransform.rect.width,
                                               gameCanvasTransform.rect.height);
-
 
         float newScale = Mathf.Lerp(size, screenCoverSize, currentTime / settings.growTime);
         selfTransform.sizeDelta = new Vector2(newScale, newScale);

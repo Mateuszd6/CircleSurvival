@@ -15,5 +15,5 @@ MonoBehaviour:
   initTime: 0.08
   deinitTime: 0.08
   growTime: 0.8
-  shakeTime: 1.5
+  shakeTime: 2
   expireTime: 4

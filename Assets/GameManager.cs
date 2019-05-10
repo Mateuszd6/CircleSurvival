@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 // TODO: Add lock object and make sure only one circle is destoryed at the time.
 public class GameManager : MonoSingleton<GameManager>
@@ -7,6 +8,7 @@ public class GameManager : MonoSingleton<GameManager>
     public GameSettings gameSettings;
     public RectTransform gameCanvasTransform; // TODO: Get it by find?
     public List<Circle> activeCircles; // TODO: private
+    public Text gameTimer;
 
     public enum GameState { running, ended };
     public GameState gameState = GameState.running;
@@ -107,7 +109,18 @@ public class GameManager : MonoSingleton<GameManager>
 
         explodeCircle.transform.SetSiblingIndex(int.MaxValue);
         explodeCircle.ChangeState(Circle.CircleState.grow);
+        AudioManager.Instance.PlayCutdown();
         gameState = GameState.ended; // No more circles will be spawned.
+    }
+
+    private void UpdateTime(int secondsSinceStart)
+    {
+        int minutes = secondsSinceStart / 60;
+        int seconds = secondsSinceStart % 60;
+        string minutesStr = minutes == 0 ? "" : minutes.ToString() + " min ";
+        string secondsStr = seconds.ToString() + " sec ";
+
+        gameTimer.text = "Time: " + minutesStr + secondsStr;
     }
 
     void Awake()
@@ -115,17 +128,24 @@ public class GameManager : MonoSingleton<GameManager>
         activeCircles = new List<Circle>();
     }
 
+    int lastTimeUpdateValue = 0;
     int currentLevelIdx = 0;
     float timeInLevel = 0;
     float timeWithoutSpawn = 0;
     float nextSpawnTime = 0.5f;
+    float gameTime = 0f;
 
     void Update()
     {
         if (gameState == GameState.running)
         {
+            gameTime += Time.deltaTime;
             timeWithoutSpawn += Time.deltaTime;
             timeInLevel += Time.deltaTime;
+
+            int secondsSinceStart = Mathf.RoundToInt(gameTime);
+            if (secondsSinceStart > lastTimeUpdateValue)
+                UpdateTime(secondsSinceStart);
 
             if (timeWithoutSpawn >= nextSpawnTime) // timeWithoutSpawn >= gameSettings.levels[currentLevelIdx].spawningFrequency)
             {
