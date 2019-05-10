@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 499a7ff4976dd9b4b9770aa77f07faee, type: 3}
+  m_Name: CircleSettings
+  m_EditorClassIdentifier: 
+  initTime: 0.08
+  deinitTime: 0.08
+  growTime: 0.8
+  shakeTime: 1.5
+  expireTime: 4

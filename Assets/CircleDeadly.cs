@@ -7,13 +7,14 @@ public class CircleDeadly : Circle
         Debug.Log("Black circle was clicked. Game is lost!\n");
         Debug.Break();
 
+        
         currentTime = 0;
         circleState = CircleState.grow;
     }
 
     public override void CountingUpdate()
     {
-        if (currentTime >= expireTime)
+        if (currentTime >= settings.expireTime)
         {
             // TODO: We won't need these. Why????
             currentTime = 0;

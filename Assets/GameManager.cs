@@ -1,20 +1,19 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+// TODO: Add lock object and make sure only one circle is destoryed at the time.
+public class GameManager : MonoSingleton<GameManager>
 {
     public RectTransform gameCanvasTransform; // TODO: Get it by find?
-    private List<Circle> activeCircles;
+    public List<Circle> activeCircles; // TODO: private
+
+    public enum GameState { running, ended };
+    public GameState gameState = GameState.running;
 
     public GameObject saveCircle;
     public GameObject deadlyCircle;
 
-    void Awake()
-    {
-        activeCircles = new List<Circle>();
-    }
-
-    Vector2 RandomScreenPosition(float circleSize)
+    private Vector2 RandomScreenPosition(float circleSize)
     {
         var screenSize = new Vector2(gameCanvasTransform.rect.width,
                                      gameCanvasTransform.rect.height);
@@ -23,12 +22,33 @@ public class GameManager : MonoBehaviour
         // will never be right on the boundary.
         float offset = 5;
         float circleRadius = circleSize / 2;
-        var randomPos = new Vector2(Random.Range(circleRadius + offset,
-                                                 screenSize.x - circleRadius - offset),
-                                    Random.Range(circleRadius + offset,
-                                                 screenSize.y - circleRadius - offset));
+        var positionBound = new Vector2(screenSize.x / 2 - circleRadius - offset, 
+                                        screenSize.y / 2 - circleRadius - offset);
 
+        float randomX = Random.Range(-positionBound.x, positionBound.x);
+        float randomY = Random.Range(-positionBound.y, positionBound.y); 
+        var randomPos = new Vector2(randomX, randomY);
         return randomPos;
+    }
+
+    private bool CircleIntersects(float checkedSize, Vector2 checkedPosition)
+    {
+        float checkedRadius = checkedSize / 2;
+        foreach (Circle c in activeCircles)
+        {
+            float cRadius = c.size / 2;
+
+            // Diff is calculated so that we can call sqrMagitude and avoid 
+            // calculating the square root.
+            Vector2 diff = checkedPosition - c.position;
+            if (Vector2.SqrMagnitude(diff) <= (cRadius + checkedSize) * (cRadius + checkedSize))
+            {
+                Debug.LogWarning("Circle intersects!");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void SpawnCircle()
@@ -38,37 +58,64 @@ public class GameManager : MonoBehaviour
 
         // TODO: Make sure the ids does not repead.
         int newID = Random.Range(0, 2147483647);
-        float newSize = Random.Range(screenH * 0.1f, screenH * 0.25f);
-        Vector2 newPosition = RandomScreenPosition(newSize);
+        float newSize = 0;
+        Vector2 newPosition = Vector2.zero;
+
+        // TODO: Add limits of trys.
+        do
+        {
+            newSize = Random.Range(screenH * 0.1f, screenH * 0.25f);
+            newPosition = RandomScreenPosition(newSize);
+        } while (CircleIntersects(newSize, newPosition));
 
         var createdCircle = Instantiate(saveCircle, gameCanvasTransform.transform)
                                 .GetComponent<Circle>();
 
         createdCircle.SetValues(newID, newSize, newPosition);
-        createdCircle.currentTime = 0.0f; // TODO: Remove it from here once change state fucntion gots implements.
-        createdCircle.circleState = Circle.CircleState.initializing;
+        activeCircles.Add(createdCircle);
+        createdCircle.ChangeState(Circle.CircleState.initializing);
     }
 
     public void DestroyCircle(int circleID)
     {
-        activeCircles.RemoveAll(x => x.id == circleID);
+        // We don't have a way to remove and return reference in one lookup 
+        // with LINQ, so we have to do it manually.
+        int index = activeCircles.FindIndex(x => x.id == circleID);
+        Circle destroyedCircle = activeCircles[index];
+        activeCircles.RemoveAt(index);
+
+        destroyedCircle.ChangeState(Circle.CircleState.deinitializing);
     }
 
-    int alreadySpawned = 0;
+    // One circle explodes to the whole screen, the rest becomes inactive.
+    // The game finishes with this call.
+    public void ExplodeCircle(int circleID)
+    {
+        Circle explodeCircle = activeCircles.Find(x => x.id == circleID);
+        foreach (Circle c in activeCircles)
+        {
+            if (c != explodeCircle)
+                c.circleState = Circle.CircleState.none;
+        }
+
+        explodeCircle.transform.SetSiblingIndex(int.MaxValue);
+        explodeCircle.ChangeState(Circle.CircleState.grow);
+    }
+
+    void Awake()
+    {
+        activeCircles = new List<Circle>();
+    }
+
+    float timeWithoutSpawn = 0f;
+    float spawnInterval = 1f;
     void Update()
     {
-        if ((alreadySpawned <= 0 && Time.time >= 3.0f)
-            || (alreadySpawned <= 1 && Time.time >= 3.5f)
-            || (alreadySpawned <= 2 && Time.time >= 4.0f)
-            || (alreadySpawned <= 3 && Time.time >= 4.5f)
-            || (alreadySpawned <= 4 && Time.time >= 5.0f)
-            || (alreadySpawned <= 5 && Time.time >= 5.5f)
-            || (alreadySpawned <= 6 && Time.time >= 6.0f)
-            || (alreadySpawned <= 7 && Time.time >= 7.0f)
-            || (alreadySpawned <= 8 && Time.time >= 8.0f))
+        timeWithoutSpawn += Time.deltaTime;
+        if (timeWithoutSpawn >= spawnInterval)
         {
             SpawnCircle();
-            alreadySpawned = 15;
+            timeWithoutSpawn = 0f;
         }
     }
 }

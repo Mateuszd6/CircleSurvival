@@ -89,13 +89,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selfTransform: {fileID: 2239581682777831369}
+  settings: {fileID: 11400000, guid: e9e0fc38ff1c28d4ea8b74264c9a7a81, type: 2}
   id: 0
   size: 0
+  position: {x: 0, y: 0}
   currentTime: 0
-  initTime: 0.08
-  deinitTime: 0.08
-  growTime: 2
-  expireTime: 4
   circleState: 0
   greenFill: {fileID: 2239581682790792515}
 --- !u!1 &2239581682790792513

@@ -6,24 +6,32 @@ using UnityEngine.UI;
 public abstract class Circle : MonoBehaviour, IPointerClickHandler
 {
     public RectTransform selfTransform;
+    public CircleSettings settings;
 
     // These must be set by the external creator. 
     public int id;
     public float size;
-    Vector2 position;
+    public Vector2 position;
 
     public float currentTime = 0f;
-    public float initTime = 0.08f; // TODO: Use this instead of magic values!
-    public float deinitTime = 0.08f;
-    public float growTime = 1f;
-    public float shakeTime = 2f;
-    public float expireTime = 4f;
 
     // When (de)initializing circle size lerps from(to) zero but the object is inactive. 
     // This make is 'smoothely' appear on the screen. Grow is done when the 'bomb' explodeds
     // covering all screen the the circle. 
     public enum CircleState { none, initializing, couting, deinitializing, grow };
     public CircleState circleState = CircleState.none;
+
+    public void ChangeState(CircleState newState)
+    {
+        if (circleState == newState)
+        {
+            Debug.LogWarning("The circle state is already " + newState.ToString() + "\n");
+            return;
+        }
+
+        currentTime = 0;
+        circleState = newState;
+    }
 
     public abstract void HandleAction();
 
@@ -32,23 +40,22 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
     public virtual void InitUpdate()
     {
         var selfRectTransfrom = selfTransform;
-        float newScale = Mathf.Lerp(0.0f, size, currentTime / initTime);
+        float newScale = Mathf.Lerp(0.0f, size, currentTime / settings.initTime);
         selfRectTransfrom.sizeDelta = new Vector2(newScale, newScale);
 
-        if (currentTime >= initTime)
+        if (currentTime >= settings.initTime)
         {
-            currentTime = 0;
-            circleState = CircleState.couting;
+            ChangeState(CircleState.couting);
         }
     }
 
     public virtual void DeinitUpdate()
     {
         var selfRectTransfrom = selfTransform;
-        float newScale = Mathf.Lerp(size, 0.0f, currentTime / deinitTime);
+        float newScale = Mathf.Lerp(size, 0.0f, currentTime / settings.deinitTime);
         selfRectTransfrom.sizeDelta = new Vector2(newScale, newScale);
 
-        if (currentTime >= deinitTime)
+        if (currentTime >= settings.deinitTime)
             Destroy(gameObject);
     }
 
@@ -59,9 +66,9 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
         if (shake)
         {
             Vector2 shakeOffset = new Vector2(Random.value * 3.5f, Random.value * 3.5f);
-            selfTransform.position = new Vector3(position.x + shakeOffset.x, position.y + shakeOffset.y);
+            selfTransform.localPosition = new Vector3(position.x + shakeOffset.x, position.y + shakeOffset.y);
 
-            if (currentTime >= shakeTime)
+            if (currentTime >= settings.shakeTime)
             {
                 currentTime = 0;
                 shake = false;
@@ -71,21 +78,20 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
         }
 
         // This will get the large enough size to cover the whole screen.
-        float screenCoverSize = 10000;
-#if false
-            4 * Mathf.Max(gameCanvasTransform.rect.width,
+        // TODO: Find a way to skip get component here!
+        var gameCanvasTransform = transform.parent.GetComponent<RectTransform>();
+        float screenCoverSize = 4 * Mathf.Max(gameCanvasTransform.rect.width,
                                               gameCanvasTransform.rect.height);
-#endif
 
 
-        float newScale = Mathf.Lerp(size, screenCoverSize, currentTime / growTime);
+        float newScale = Mathf.Lerp(size, screenCoverSize, currentTime / settings.growTime);
         selfTransform.sizeDelta = new Vector2(newScale, newScale);
 
-        if (currentTime >= growTime)
+        if (currentTime >= settings.growTime)
         {
             // TODO: Change this behaviour!
             Debug.Log("Growing has finished\n");
-            Destroy(this);
+            ChangeState(CircleState.none);
         }
     }
     
@@ -95,7 +101,8 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
         size = newSize;
         position = newPosition;
 
-        selfTransform.position = new Vector3(position.x, position.y);
+        Debug.Log("Local position: " + position + "\n");
+        selfTransform.localPosition = new Vector3(position.x, position.y);
     }
 
     void Awake()

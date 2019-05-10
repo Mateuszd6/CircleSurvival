@@ -9,22 +9,20 @@ public class CircleSave : Circle
     {
         Debug.Log("Circle " + id + " was clicked! It will be destructed now\n");
 
-        circleState = CircleState.deinitializing;
-        currentTime = 0;
+        GameManager.Instance.DestroyCircle(id);
     }
 
     public override void CountingUpdate()
     {
-        greenFill.fillAmount = Mathf.Lerp(1, 0, currentTime / expireTime);
+        greenFill.fillAmount = Mathf.Lerp(1, 0, currentTime / settings.expireTime);
 
-        if (currentTime >= expireTime)
+        if (currentTime >= settings.expireTime)
         {
             Debug.Log("Not clicked! Game should be finished!\n");
             Debug.Break();
 
             // TODO: We won't need these. Why????
-            currentTime = 0;
-            circleState = CircleState.grow;
+            GameManager.Instance.ExplodeCircle(id);
         }
     }
 }

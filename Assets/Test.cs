@@ -11,10 +11,15 @@ public class Test : MonoBehaviour
 
     void Start() 
     {
+#if false
         Debug.Log("Game settings: black circle prob: " + gameSettings.blackCircleProbability + "\n");
-    }
+        Highscores hs = HighscoreManager.Instance.Highscores;
+        Debug.Log(JsonUtility.ToJson(hs));
 
-    void Update() 
-    {
+        HighscoreManager.Instance.AddScoreToHighscores("Maty3", 27);
+
+        hs = HighscoreManager.Instance.Highscores;
+        Debug.Log(JsonUtility.ToJson(hs));
+#endif
     }
 }
