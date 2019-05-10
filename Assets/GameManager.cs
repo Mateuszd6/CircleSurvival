@@ -4,6 +4,7 @@ using UnityEngine;
 // TODO: Add lock object and make sure only one circle is destoryed at the time.
 public class GameManager : MonoSingleton<GameManager>
 {
+    public GameSettings gameSettings;
     public RectTransform gameCanvasTransform; // TODO: Get it by find?
     public List<Circle> activeCircles; // TODO: private
 
@@ -68,12 +69,18 @@ public class GameManager : MonoSingleton<GameManager>
             newPosition = RandomScreenPosition(newSize);
         } while (CircleIntersects(newSize, newPosition));
 
-        var createdCircle = Instantiate(saveCircle, gameCanvasTransform.transform)
+        GameObject spawnedCirclePrefab =
+            (Random.Range(0, 100) < gameSettings.blackCircleProbability
+             ? deadlyCircle 
+             : saveCircle);
+
+        var createdCircle = Instantiate(spawnedCirclePrefab, gameCanvasTransform.transform)
                                 .GetComponent<Circle>();
 
         createdCircle.SetValues(newID, newSize, newPosition);
         activeCircles.Add(createdCircle);
         createdCircle.ChangeState(Circle.CircleState.initializing);
+        AudioManager.Instance.PlayPopSound();
     }
 
     public void DestroyCircle(int circleID)
@@ -100,6 +107,7 @@ public class GameManager : MonoSingleton<GameManager>
 
         explodeCircle.transform.SetSiblingIndex(int.MaxValue);
         explodeCircle.ChangeState(Circle.CircleState.grow);
+        gameState = GameState.ended; // No more circles will be spawned.
     }
 
     void Awake()
@@ -107,15 +115,33 @@ public class GameManager : MonoSingleton<GameManager>
         activeCircles = new List<Circle>();
     }
 
-    float timeWithoutSpawn = 0f;
-    float spawnInterval = 1f;
+    int currentLevelIdx = 0;
+    float timeInLevel = 0;
+    float timeWithoutSpawn = 0;
+    float nextSpawnTime = 0.5f;
+
     void Update()
     {
-        timeWithoutSpawn += Time.deltaTime;
-        if (timeWithoutSpawn >= spawnInterval)
+        if (gameState == GameState.running)
         {
-            SpawnCircle();
-            timeWithoutSpawn = 0f;
+            timeWithoutSpawn += Time.deltaTime;
+            timeInLevel += Time.deltaTime;
+
+            if (timeWithoutSpawn >= nextSpawnTime) // timeWithoutSpawn >= gameSettings.levels[currentLevelIdx].spawningFrequency)
+            {
+                SpawnCircle();
+                timeWithoutSpawn = 0f;
+
+                nextSpawnTime = Random.Range(gameSettings.levels[currentLevelIdx].minNoSpawnInterval,
+                                             gameSettings.levels[currentLevelIdx].maxNoSpawnInterval);
+            }
+
+            if (timeInLevel >= gameSettings.levels[currentLevelIdx].endofTime)
+            {
+                Debug.Log("Time " + timeInLevel + ": level was finished!\n");
+                timeInLevel = 0;
+                currentLevelIdx++;
+            }
         }
     }
 }

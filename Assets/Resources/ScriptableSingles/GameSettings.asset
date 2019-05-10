@@ -12,8 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 566553ff1d0ff05438a5ebe19d0a4d03, type: 3}
   m_Name: GameSettings
   m_EditorClassIdentifier: 
-  blackCircleProbability: 11
-  initialLifetimeLenMin: 2
-  initialLifetimeLenMax: 4
-  circleSizeMin: 50
-  circleSizeMax: 90
+  blackCircleProbability: 10
+  levels:
+  - dotLifetimeLenMin: 2
+    dotLifetimeLenMax: 4
+    minNoSpawnInterval: 2
+    maxNoSpawnInterval: 3
+    endofTime: 10
+  - dotLifetimeLenMin: 2
+    dotLifetimeLenMax: 4
+    minNoSpawnInterval: 1
+    maxNoSpawnInterval: 2
+    endofTime: 10
+  - dotLifetimeLenMin: 2
+    dotLifetimeLenMax: 4
+    minNoSpawnInterval: 0.2
+    maxNoSpawnInterval: 0.6
+    endofTime: Infinity
