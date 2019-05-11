@@ -18,9 +18,7 @@ public class CircleSave : Circle
 
         if (currentTime >= lifeTime)
         {
-            Debug.Log("Not clicked! Game should be finished!\n");
-            Debug.Break();
-
+            Debug.Log("Save circle not clicked! Game should be finished!\n");
             GameManager.Instance.ExplodeCircle(id);
         }
     }
