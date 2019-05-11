@@ -101,7 +101,7 @@ public class GameManager : MonoSingleton<GameManager>
 
 
         GameObject spawnedCirclePrefab =
-            (Random.Range(0, 100) < gameSettings.blackCircleProbability
+            (Random.Range(0f, 1f) <= gameSettings.blackCircleProbability
              ? deadlyCircle 
              : saveCircle);
 

@@ -24,9 +24,9 @@ public class GameSettings : ScriptableObject
         public float levelDuration;
     }
 
-    [Range(1, 100)]
+    [Range(0, 1)]
     [SerializeField]
-    public int blackCircleProbability = 10;
+    public float blackCircleProbability = 0.1f;
 
     [SerializeField]
     public Level[] levels;
