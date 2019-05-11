@@ -11,6 +11,7 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
     // These must be set by the external creator. 
     public int id;
     public float size;
+    public float lifeTime;
     public Vector2 position;
 
     public float currentTime = 0f;
@@ -100,11 +101,12 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
         }
     }
     
-    public void SetValues(int newID, float newSize, Vector2 newPosition)
+    public void SetValues(int newID, float newSize, float newLifetime, Vector2 newPosition)
     {
         id = newID;
         size = newSize;
         position = newPosition;
+        lifeTime = newLifetime;
 
         Debug.Log("Local position: " + position + "\n");
         selfTransform.localPosition = new Vector3(position.x, position.y);

@@ -16,16 +16,31 @@ MonoBehaviour:
   levels:
   - dotLifetimeLenMin: 2
     dotLifetimeLenMax: 4
-    minNoSpawnInterval: 2
-    maxNoSpawnInterval: 3
-    endofTime: 10
-  - dotLifetimeLenMin: 2
-    dotLifetimeLenMax: 4
     minNoSpawnInterval: 1
+    maxNoSpawnInterval: 3
+    levelDuration: 8
+  - dotLifetimeLenMin: 1.5
+    dotLifetimeLenMax: 3
+    minNoSpawnInterval: 0.8
     maxNoSpawnInterval: 2
-    endofTime: 10
-  - dotLifetimeLenMin: 2
-    dotLifetimeLenMax: 4
+    levelDuration: 8
+  - dotLifetimeLenMin: 1.2
+    dotLifetimeLenMax: 2.5
+    minNoSpawnInterval: 0.5
+    maxNoSpawnInterval: 1.5
+    levelDuration: 8
+  - dotLifetimeLenMin: 1
+    dotLifetimeLenMax: 1.8
     minNoSpawnInterval: 0.2
-    maxNoSpawnInterval: 0.6
-    endofTime: Infinity
+    maxNoSpawnInterval: 1.2
+    levelDuration: 8
+  - dotLifetimeLenMin: 0.8
+    dotLifetimeLenMax: 1.5
+    minNoSpawnInterval: 0.1
+    maxNoSpawnInterval: 1
+    levelDuration: 8
+  - dotLifetimeLenMin: 0.8
+    dotLifetimeLenMax: 1.5
+    minNoSpawnInterval: 0.1
+    maxNoSpawnInterval: 1
+    levelDuration: Infinity

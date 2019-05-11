@@ -21,7 +21,7 @@ public class GameSettings : ScriptableObject
 
         // The moment the level ends of infinity if it does not (because of being the last).
         [SerializeField]
-        public float endofTime;
+        public float levelDuration;
     }
 
     [Range(1, 100)]

@@ -14,9 +14,9 @@ public class CircleSave : Circle
 
     public override void CountingUpdate()
     {
-        greenFill.fillAmount = Mathf.Lerp(1, 0, currentTime / settings.expireTime);
+        greenFill.fillAmount = Mathf.Lerp(1, 0, currentTime / lifeTime);
 
-        if (currentTime >= settings.expireTime)
+        if (currentTime >= lifeTime)
         {
             Debug.Log("Not clicked! Game should be finished!\n");
             Debug.Break();

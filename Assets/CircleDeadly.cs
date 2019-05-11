@@ -12,7 +12,7 @@ public class CircleDeadly : Circle
 
     public override void CountingUpdate()
     {
-        if (currentTime >= settings.expireTime)
+        if (currentTime >= lifeTime)
         {
             GameManager.Instance.DestroyCircle(id);
         }

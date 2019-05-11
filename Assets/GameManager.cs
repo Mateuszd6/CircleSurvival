@@ -88,6 +88,8 @@ public class GameManager : MonoSingleton<GameManager>
         // TODO: Make sure the ids does not repead.
         int newID = Random.Range(0, 2147483647);
         float newSize = 0;
+        float lifetime = Random.Range(gameSettings.levels[currentLevelIdx].dotLifetimeLenMin,
+                                      gameSettings.levels[currentLevelIdx].dotLifetimeLenMax);
         Vector2 newPosition = Vector2.zero;
 
         // TODO: Add limits of trys.
@@ -97,6 +99,7 @@ public class GameManager : MonoSingleton<GameManager>
             newPosition = RandomScreenPosition(newSize);
         } while (CircleIntersects(newSize, newPosition));
 
+
         GameObject spawnedCirclePrefab =
             (Random.Range(0, 100) < gameSettings.blackCircleProbability
              ? deadlyCircle 
@@ -105,7 +108,8 @@ public class GameManager : MonoSingleton<GameManager>
         var createdCircle = Instantiate(spawnedCirclePrefab, gameCanvasTransform.transform)
                                 .GetComponent<Circle>();
 
-        createdCircle.SetValues(newID, newSize, newPosition);
+
+        createdCircle.SetValues(newID, newSize, lifetime, newPosition);
         activeCircles.Add(createdCircle);
         createdCircle.ChangeState(Circle.CircleState.initializing);
         AudioManager.Instance.PlayPopSound();
@@ -273,7 +277,7 @@ public class GameManager : MonoSingleton<GameManager>
                                              gameSettings.levels[currentLevelIdx].maxNoSpawnInterval);
             }
 
-            if (timeInLevel >= gameSettings.levels[currentLevelIdx].endofTime)
+            if (timeInLevel >= gameSettings.levels[currentLevelIdx].levelDuration)
             {
                 Debug.Log("Time " + timeInLevel + ": level was finished!\n");
                 timeInLevel = 0;

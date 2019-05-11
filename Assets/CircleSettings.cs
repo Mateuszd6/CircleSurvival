@@ -7,5 +7,4 @@ public class CircleSettings : ScriptableObject
     public float deinitTime = 0.08f;
     public float growTime = 1f;
     public float shakeTime = 2f;
-    public float expireTime = 4f; // TODO: This should not be here. Pass it by set values!
 }
