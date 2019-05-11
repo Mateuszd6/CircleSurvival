@@ -5,7 +5,7 @@ using UnityEngine;
 public class GameSettings : ScriptableObject
 {
     [Serializable]
-    public class Level // TODO: Name it better
+    public class Level
     {
         [SerializeField]
         public float dotLifetimeLenMin;

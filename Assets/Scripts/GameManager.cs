@@ -3,11 +3,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// TODO: Add lock object and make sure only one circle is destoryed at the time.
 public class GameManager : MonoSingleton<GameManager>
 {
     public GameSettings gameSettings;
-    public RectTransform gameCanvasTransform; // TODO: Get it by find?
+    public RectTransform gameCanvasTransform;
     public Text gameTimer;
     public Text countdown;
 
@@ -17,20 +16,20 @@ public class GameManager : MonoSingleton<GameManager>
     public InputField highscoreNameField;
     public Button submitScoreButton;
 
-    public List<Circle> activeCircles; // TODO: private
-
-    public enum GameState { init, running, ended };
-    public GameState gameState = GameState.init;
-
     public GameObject saveCircle;
     public GameObject deadlyCircle;
+
+    private List<Circle> activeCircles; 
+
+    private enum GameState { init, running, ended };
+    private GameState gameState = GameState.init;
 
     private int scoredResult = 0;
     private int currentLevelIdx = 0;
     private float timeInLevel = 0;
     private float timeWithoutSpawn = 0;
     private float nextSpawnTime = 0.5f;
-    private float gameTime = 0f;
+    private float currentTime = 0f;
 
     private string TimeInSecondsToString(int seconds)
     {
@@ -65,11 +64,11 @@ public class GameManager : MonoSingleton<GameManager>
         float checkedRadius = checkedSize / 2;
         foreach (Circle c in activeCircles)
         {
-            float cRadius = c.size / 2;
+            float cRadius = c.Size / 2;
 
             // Diff is calculated so that we can call sqrMagitude and avoid 
             // calculating the square root.
-            Vector2 diff = checkedPosition - c.position;
+            Vector2 diff = checkedPosition - c.Position;
             if (Vector2.SqrMagnitude(diff) <= (cRadius + checkedSize) * (cRadius + checkedSize))
             {
                 Debug.LogWarning("Circle intersects!");
@@ -85,20 +84,31 @@ public class GameManager : MonoSingleton<GameManager>
         float screenW = gameCanvasTransform.rect.width;
         float screenH = gameCanvasTransform.rect.height;
 
-        // TODO: Make sure the ids does not repead.
-        int newID = Random.Range(0, 2147483647);
+        // The id repetition is very unlikely but lets be pedantic about this.
+        int newID = 0;
+        do
+        {
+            newID = Random.Range(0, 2147483647);
+        } while (activeCircles.FindIndex(x => x.Id == newID) != -1);
+
         float newSize = 0;
         float lifetime = Random.Range(gameSettings.levels[currentLevelIdx].dotLifetimeLenMin,
                                       gameSettings.levels[currentLevelIdx].dotLifetimeLenMax);
         Vector2 newPosition = Vector2.zero;
 
-        // TODO: Add limits of trys.
+        // The max limit of trys is 32 which is veery high. But when with some reason it 
+        // would be even harder to find a clear spot for the dot we just won't spawn it 
+        // avoiding infinite loop.
+        int trysLimit = 32;
         do
         {
+            trysLimit--;
             newSize = Random.Range(screenH * 0.1f, screenH * 0.25f);
             newPosition = RandomScreenPosition(newSize);
-        } while (CircleIntersects(newSize, newPosition));
+        } while (trysLimit > 0 && CircleIntersects(newSize, newPosition));
 
+        if (trysLimit <= 0)
+            return;
 
         GameObject spawnedCirclePrefab =
             (Random.Range(0f, 1f) <= gameSettings.blackCircleProbability
@@ -119,7 +129,7 @@ public class GameManager : MonoSingleton<GameManager>
     {
         // We don't have a way to remove and return reference in one lookup 
         // with LINQ, so we have to do it manually.
-        int index = activeCircles.FindIndex(x => x.id == circleID);
+        int index = activeCircles.FindIndex(x => x.Id == circleID);
         Circle destroyedCircle = activeCircles[index];
         activeCircles.RemoveAt(index);
 
@@ -130,11 +140,11 @@ public class GameManager : MonoSingleton<GameManager>
     // The game finishes with this call.
     public void ExplodeCircle(int circleID)
     {
-        Circle explodeCircle = activeCircles.Find(x => x.id == circleID);
+        Circle explodeCircle = activeCircles.Find(x => x.Id == circleID);
         foreach (Circle c in activeCircles)
         {
             if (c != explodeCircle)
-                c.circleState = Circle.CircleState.none;
+                c.ChangeState(Circle.CircleState.none);
         }
 
         explodeCircle.transform.SetSiblingIndex(int.MaxValue);
@@ -223,28 +233,28 @@ public class GameManager : MonoSingleton<GameManager>
     int countdownState = 0;
     void Update()
     {
-        gameTime += Time.deltaTime; // TODO: Rename gameTime to stateTime etc
+        currentTime += Time.deltaTime; 
         if (gameState == GameState.init)
         {
-            if (countdownState == 4 && gameTime >= 3 * 0.9f + 2f)
+            if (countdownState == 4 && currentTime >= 3 * 0.9f + 2f)
             {
                 countdown.gameObject.SetActive(false);
 
                 Debug.Log("Game started\n");
-                gameTime = 0;
+                currentTime = 0;
                 gameState = GameState.running;
             }
-            else if (countdownState == 3 && gameTime >= 3 * 0.9f)
+            else if (countdownState == 3 && currentTime >= 3 * 0.9f)
             {
                 countdownState = 4;
                 SetCountDown(countdownState);
             }
-            else if (countdownState == 2 && gameTime >= 2 * 0.9f)
+            else if (countdownState == 2 && currentTime >= 2 * 0.9f)
             {
                 countdownState = 3;
                 SetCountDown(countdownState);
             }
-            else if (countdownState == 1 && gameTime >=  0.9f)
+            else if (countdownState == 1 && currentTime >=  0.9f)
             {
                 countdownState = 2;
                 SetCountDown(countdownState);
@@ -262,7 +272,7 @@ public class GameManager : MonoSingleton<GameManager>
             timeInLevel += Time.deltaTime;
 
             // This check will allow us to update this text much lesser.
-            int secondsSinceStart = Mathf.RoundToInt(gameTime);
+            int secondsSinceStart = Mathf.RoundToInt(currentTime);
             if (secondsSinceStart > scoredResult)
             {
                 UpdateTime(secondsSinceStart);

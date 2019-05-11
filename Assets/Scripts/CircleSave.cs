@@ -21,7 +21,6 @@ public class CircleSave : Circle
             Debug.Log("Not clicked! Game should be finished!\n");
             Debug.Break();
 
-            // TODO: We won't need these. Why????
             GameManager.Instance.ExplodeCircle(id);
         }
     }

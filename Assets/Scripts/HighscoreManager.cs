@@ -8,7 +8,7 @@ using UnityEngine;
 public class HighscoreManager : MonoSingleton<HighscoreManager>
 {
     private static readonly string highscoresFilename = "highscores.json";
-    private static readonly int maxRecords = 3;
+    private static readonly int maxRecords = 5; // Keep best 5 scores.
 
     // As MBs do not have contructors we have to initialize the path variable lazily.
     private string _highscoresFilePath;

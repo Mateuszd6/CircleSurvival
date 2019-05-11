@@ -1,26 +1,34 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-// TODO: Stop calling get component everywere!
 public abstract class Circle : MonoBehaviour, IPointerClickHandler
 {
-    public RectTransform selfTransform;
     public CircleSettings settings;
-
-    // These must be set by the external creator. 
-    public int id;
-    public float size;
-    public float lifeTime;
-    public Vector2 position;
-
-    public float currentTime = 0f;
 
     // When (de)initializing circle size lerps from(to) zero but the object is inactive. 
     // This make is 'smoothely' appear on the screen. Grow is done when the 'bomb' explodeds
     // covering all screen the the circle. 
     public enum CircleState { none, initializing, couting, deinitializing, grow };
-    public CircleState circleState = CircleState.none;
+    protected CircleState circleState = CircleState.none;
+
+    protected RectTransform selfTransform;
+    protected RectTransform parentTransform; // This is the game area in which circles spawn.
+
+    protected float currentTime = 0f;
+
+    // These must be set by the external creator. 
+    protected int id;
+    protected float size;
+    protected float lifeTime;
+    protected Vector2 position;
+
+    public int Id { get { return id; } }
+    public float Size { get { return size; } }
+    public float LifeTime { get { return lifeTime; } }
+    public Vector2 Position { get { return position; } }
+
+    // Used when handling explode routine.
+    private bool isShaking = true;
 
     public void ChangeState(CircleState newState)
     {
@@ -60,43 +68,36 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
             Destroy(gameObject);
     }
 
-    // TODO: Make separate state for shaking. 
-    private bool shake = true; // TODO: get rid of.
     public virtual void GrowUpdate()
     {
-        // TODO: Find a way to skip get component here!
-        var gameCanvasTransform = transform.parent.GetComponent<RectTransform>();
-
-        if (shake)
+        if (isShaking)
         {
             // This fraction of the screen is empirical but looks good with many resolutions.
-            var perc = gameCanvasTransform.rect.width / 140;
+            var perc = parentTransform.rect.width / 140;
             Vector2 shakeOffset = new Vector2(Random.value * perc, Random.value * perc);
-            selfTransform.localPosition = new Vector3(position.x + shakeOffset.x, position.y + shakeOffset.y);
+            selfTransform.localPosition = new Vector3(position.x + shakeOffset.x, 
+                                                      position.y + shakeOffset.y);
 
             if (currentTime >= settings.shakeTime)
             {
                 currentTime = 0;
-                shake = false;
+                isShaking = false;
                 AudioManager.Instance.PlayExplosion();
             }
 
             return;
         }
 
-        float screenCoverSize = 4 * Mathf.Max(gameCanvasTransform.rect.width,
-                                              gameCanvasTransform.rect.height);
+        float screenCoverSize = 4 * Mathf.Max(parentTransform.rect.width,
+                                              parentTransform.rect.height);
 
         float newScale = Mathf.Lerp(size, screenCoverSize, currentTime / settings.growTime);
         selfTransform.sizeDelta = new Vector2(newScale, newScale);
 
         if (currentTime >= settings.growTime)
         {
-            // TODO: Change this behaviour!
-            Debug.Log("Growing has finished\n");
+            // We are done. Now cleanup will delete all circle (including us).
             ChangeState(CircleState.none);
-
-            // The cleanup will delete all circle (including us).
             GameManager.Instance.Cleanup();
         }
     }
@@ -108,42 +109,43 @@ public abstract class Circle : MonoBehaviour, IPointerClickHandler
         position = newPosition;
         lifeTime = newLifetime;
 
-        Debug.Log("Local position: " + position + "\n");
         selfTransform.localPosition = new Vector3(position.x, position.y);
     }
 
     void Awake()
     {
         selfTransform = GetComponent<RectTransform>();
+        parentTransform = transform.parent.GetComponent<RectTransform>();
 
         // When the circle is instantiated we must set the scale to 0.
         // It will be reset by the creator.
         selfTransform.sizeDelta = new Vector2(0, 0);
     }
 
-    // TODO: Rewrite them as coroutines?
     void Update()
     {
         currentTime += Time.deltaTime;
 
-        if (circleState == CircleState.initializing)
+        switch(circleState)
         {
-            InitUpdate();
-        }
-        
-        if (circleState == CircleState.couting)
-        {
-            CountingUpdate();
-        }
+            case CircleState.initializing:
+                InitUpdate();
+                break;
 
-        if (circleState == CircleState.deinitializing)
-        {
-            DeinitUpdate();
-        }
+            case CircleState.couting:
+                CountingUpdate();
+                break;
 
-        if (circleState == CircleState.grow)
-        {
-            GrowUpdate();
+            case CircleState.deinitializing:
+                DeinitUpdate();
+                break;
+
+            case CircleState.grow:
+                GrowUpdate();
+                break;
+
+            default:
+                break;
         }
     }
 
